@@ -1,6 +1,6 @@
 {
   "name": "@flashylabs/wdk-staking-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A reference staking primitive for wallets built on Tether's WDK (or any wallet SDK): lock a balance for a fixed term at a published rate, without touching an on-chain contract or a ledger's internals — a lock earmarks a balance a provider already credits, and only yield is a real write, on close. No first-party WDK staking module exists; this is a generalized reference implementation, open for anyone to adopt or adapt.",
   "type": "module",
   "main": "./src/index.js",
