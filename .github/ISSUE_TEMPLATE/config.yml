@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ⚡ Found the Strike preimage?
+    url: https://github.com/FlashyLabs/wdk-staking-kit/issues/new?title=%E2%9A%A1%20STRIKE
+    about: Open an issue titled "⚡ STRIKE" with the recovered sentence — see the README.
