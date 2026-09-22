@@ -1,0 +1,30 @@
+{
+  "name": "@flashy/wdk-staking-kit",
+  "version": "0.1.0",
+  "description": "A reference staking primitive for wallets built on Tether's WDK (or any wallet SDK): lock a balance for a fixed term at a published rate, without touching an on-chain contract or a ledger's internals — a lock earmarks a balance a provider already credits, and only yield is a real write, on close. No first-party WDK staking module exists; this is a generalized reference implementation, open for anyone to adopt or adapt.",
+  "type": "module",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "manifest": "node src/manifest.js --write",
+    "check": "node src/manifest.js --check"
+  },
+  "keywords": [
+    "wdk",
+    "tether",
+    "wallet",
+    "staking",
+    "defi",
+    "agent",
+    "crypto",
+    "web3"
+  ],
+  "author": "Flashy Labs",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "git+https://github.com/FlashyLabs/wdk-staking-kit.git" },
+  "homepage": "https://github.com/FlashyLabs/wdk-staking-kit#readme",
+  "bugs": { "url": "https://github.com/FlashyLabs/wdk-staking-kit/issues" },
+  "engines": { "node": ">=20" },
+  "devDependencies": {},
+  "files": ["src", "LICENSE", "README.md", "CHANGELOG.md"]
+}

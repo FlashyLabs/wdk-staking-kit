@@ -1,0 +1,60 @@
+{
+  "contract": "wdk-staking-kit-manifest/1",
+  "name": "@flashy/wdk-staking-kit",
+  "module": {
+    "package": "@flashy/wdk-staking-kit",
+    "version": "0.1.0"
+  },
+  "posture": {
+    "stage": "balance-provider-first",
+    "note": "a lock earmarks a balance the provider already credits to the holder; it does not touch that provider's internal ledger. Yield is paid through the provider's credit(), with a reason on the record.",
+    "onChainSettlement": "out of scope for this package — a contract or any other settlement layer is a second, later implementation of the terms this package publishes, adopted separately."
+  },
+  "exampleTerms": {
+    "contract": "wdk-staking-kit-terms/1",
+    "version": "0.1.0",
+    "unit": "example-unit",
+    "tiers": [
+      {
+        "id": "flex-30",
+        "termDays": 30,
+        "aprBasisPoints": 300,
+        "minAmount": "10",
+        "yieldOn100": 0.246575
+      },
+      {
+        "id": "standard-90",
+        "termDays": 90,
+        "aprBasisPoints": 600,
+        "minAmount": "10",
+        "yieldOn100": 1.479452
+      },
+      {
+        "id": "loyalty-180",
+        "termDays": 180,
+        "aprBasisPoints": 1000,
+        "minAmount": "25",
+        "yieldOn100": 4.931507
+      },
+      {
+        "id": "loyalty-365",
+        "termDays": 365,
+        "aprBasisPoints": 1500,
+        "minAmount": "50",
+        "yieldOn100": 15
+      }
+    ]
+  },
+  "events": [
+    "stake.locked",
+    "stake.closed"
+  ],
+  "refuses": [
+    "a lock below the tier's minimum, with a reason",
+    "to lock more than the holder's available balance — balance minus what is already locked",
+    "to close a position before it matures",
+    "to close the same position twice",
+    "to change a matured lock's yield after the fact — it is computed from the terms in force when the lock was opened",
+    "a non-positive amount, or an amount that is not an integer string"
+  ]
+}
