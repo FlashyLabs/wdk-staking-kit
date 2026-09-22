@@ -1,0 +1,72 @@
+name: Publish to npm
+
+# Publishes @flashy/wdk-staking-kit when its version changes on main.
+# A version already on the registry is skipped rather than failing on
+# "cannot publish over the previously published version" — makes a re-run
+# idempotent.
+#
+# This repository is public, so --provenance is used: npm attests which
+# commit, which workflow run, and which repository produced the published
+# tarball, verifiable by anyone at npmjs.com without trusting us to say so.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+      - 'src/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify the npm token can publish before doing anything else
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_FLASHYOS_CI || secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::No npm token found. Add one with publish rights on the @flashy scope as a repo secret named NPM_TOKEN_FLASHYOS_CI or NPM_TOKEN."
+            exit 1
+          fi
+          if ! WHO=$(npm whoami 2>&1); then
+            echo "::error::The npm token is set but not valid for this scope — npm said: ${WHO}. If this token publishes @flashyos/*, confirm the same account also owns the @flashy scope."
+            exit 1
+          fi
+          echo "Authenticated to npm as ${WHO}"
+
+      - name: Skip if this version is already published
+        id: check
+        run: |
+          V=$(node -p "require('./package.json').version")
+          if [ -n "$(npm view "@flashy/wdk-staking-kit@$V" version 2>/dev/null || true)" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::@flashy/wdk-staking-kit@$V is already published."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::@flashy/wdk-staking-kit@$V will be published."
+          fi
+
+      - name: Test
+        if: steps.check.outputs.publish == 'true'
+        run: |
+          npm test
+          npm run check
+
+      - name: Publish
+        if: steps.check.outputs.publish == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_FLASHYOS_CI || secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
