@@ -38,11 +38,11 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_FLASHYOS_CI || secrets.NPM_TOKEN }}
         run: |
           if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "::error::No npm token found. Add one with publish rights on the @flashy scope as a repo secret named NPM_TOKEN_FLASHYOS_CI or NPM_TOKEN."
+            echo "::error::No npm token found. Add one with publish rights on the @flashylabs scope as a repo secret named NPM_TOKEN_FLASHYOS_CI or NPM_TOKEN."
             exit 1
           fi
           if ! WHO=$(npm whoami 2>&1); then
-            echo "::error::The npm token is set but not valid for this scope — npm said: ${WHO}. If this token publishes @flashyos/*, confirm the same account also owns the @flashy scope."
+            echo "::error::The npm token is set but not valid for this scope — npm said: ${WHO}. Confirm this token has publish rights on the @flashylabs scope."
             exit 1
           fi
           echo "Authenticated to npm as ${WHO}"
