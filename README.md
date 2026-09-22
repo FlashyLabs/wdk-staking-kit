@@ -12,6 +12,8 @@
 A reference staking primitive for wallets built on [Tether's WDK](https://github.com/tetherto/wdk) — or any wallet SDK. Lock a balance into a fixed-term tier at a published rate, without an on-chain contract and without touching a ledger's internals: a lock **earmarks** a balance a provider already credits, and only the yield, paid on close, is a real write.
 
 [![tests](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@flashylabs/wdk-staking-kit.svg)](https://www.npmjs.com/package/@flashylabs/wdk-staking-kit)
+[![npm downloads](https://img.shields.io/npm/dm/@flashylabs/wdk-staking-kit.svg)](https://www.npmjs.com/package/@flashylabs/wdk-staking-kit)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
 
