@@ -3,8 +3,15 @@ name: Scorecard supply-chain security
 # OpenSSF Scorecard — an automated, standardized check of the supply-chain
 # practices this file and its siblings implement by hand: pinned dependencies,
 # branch protection, static analysis, vulnerability disclosure, dangerous
-# workflow patterns. Results publish to the public Scorecard API (a real,
-# checkable badge) and upload as a SARIF to this repo's own code scanning tab.
+# workflow patterns. Results upload as a SARIF to this repo's own code
+# scanning tab (Security -> Code scanning).
+#
+# publish_results is deliberately false: publishing to the public Scorecard
+# API needs a Sigstore/Fulcio signature over an OIDC token this runner's
+# environment does not currently hand back as valid JSON (an org-level
+# Actions/OIDC permission, not something a workflow file can fix) -- proven
+# by a real failed run on the sibling repo wdk-policy-guard, not assumed.
+# Flip it to true once that is resolved; see CONTRIBUTING.md.
 
 on:
   branch_protection_rule:
@@ -20,7 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-      id-token: write
       contents: read
       actions: read
     steps:
@@ -32,7 +38,7 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
-          publish_results: true
+          publish_results: false
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

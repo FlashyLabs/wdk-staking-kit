@@ -26,7 +26,7 @@ Every `uses:` line in `.github/workflows/` names a full 40-character commit SHA,
 
 Dependabot (`.github/dependabot.yml`) understands this convention specifically for GitHub Actions: when a pinned action ships a new release, it opens a PR bumping both the SHA and the version comment together, so the pin never silently goes stale either.
 
-`.github/workflows/codeql.yml` and `.github/workflows/scorecard.yml` run GitHub's static analysis and the OpenSSF Scorecard respectively — both read-only, both already green, both checkable independently rather than taken on trust.
+`.github/workflows/codeql.yml` and `.github/workflows/scorecard.yml` run GitHub's static analysis and the OpenSSF Scorecard respectively — both read-only, both already green, both checkable independently rather than taken on trust. Scorecard's results upload as a SARIF to this repo's own code scanning tab; `publish_results` (which would also post them to the public `securityscorecards.dev` badge API) is deliberately `false` for now — a real run on the sibling repo `wdk-policy-guard` proved GitHub's OIDC token endpoint here doesn't hand back a signable token, which is an org-level Actions permission, not something this file can fix. Whoever has FlashyLabs org admin access can check Settings → Actions → General → Workflow permissions for the OIDC/ID-token setting; flip `publish_results` to `true` once that's resolved.
 
 ## Reporting a bug
 

@@ -13,7 +13,7 @@ A reference staking primitive for wallets built on [Tether's WDK](https://github
 
 [![tests](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/codeql.yml/badge.svg)](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/codeql.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/FlashyLabs/wdk-staking-kit/badge)](https://scorecard.dev/viewer/?uri=github.com/FlashyLabs/wdk-staking-kit)
+[![Scorecard](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/scorecard.yml/badge.svg)](https://github.com/FlashyLabs/wdk-staking-kit/security/code-scanning)
 [![npm version](https://img.shields.io/npm/v/@flashylabs/wdk-staking-kit.svg)](https://www.npmjs.com/package/@flashylabs/wdk-staking-kit)
 [![npm downloads](https://img.shields.io/npm/dm/@flashylabs/wdk-staking-kit.svg)](https://www.npmjs.com/package/@flashylabs/wdk-staking-kit)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
