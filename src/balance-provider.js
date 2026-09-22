@@ -1,13 +1,15 @@
 // The interface StakingService depends on — two methods, not a whole
 // ledger. See ARCHITECTURE.md for why the surface is this small.
-//
-// @typedef {object} BalanceProvider
-// @property {(holderId: string) => Promise<string>} balance
-//   The holder's current balance, as an integer string in the unit's
-//   smallest denomination.
-// @property {(cmd: {holderId: string, amount: string, reason: {type: string, id: string}, idempotencyKey: string}) => Promise<unknown>} credit
-//   Credits the holder's balance. Must be idempotent on idempotencyKey — the
-//   same key credits once, however many times it is called.
+
+/**
+ * @typedef {object} BalanceProvider
+ * @property {(holderId: string) => Promise<string>} balance
+ *   The holder's current balance, as an integer string in the unit's
+ *   smallest denomination.
+ * @property {(cmd: {holderId: string, amount: string, reason: {type: string, id: string}, idempotencyKey: string}) => Promise<unknown>} credit
+ *   Credits the holder's balance. Must be idempotent on idempotencyKey — the
+ *   same key credits once, however many times it is called.
+ */
 
 /**
  * A reference implementation for tests, demos, and getting started. Not

@@ -40,8 +40,8 @@ export const EVENT_TYPES = Object.freeze(['stake.locked', 'stake.closed'])
 export class StakingService {
   /**
    * @param {object} opts
-   * @param {import('./balance-provider.js').InMemoryBalanceProvider} opts.provider  or any object shaped like the BalanceProvider interface — see balance-provider.js
-   * @param {import('./terms.js').Tier[]} opts.tiers
+   * @param {import('./balance-provider.js').BalanceProvider} opts.provider  any object shaped like the interface — InMemoryBalanceProvider is one reference implementation, not the requirement
+   * @param {readonly import('./terms.js').Tier[]} opts.tiers
    * @param {() => Date} [opts.now]
    */
   constructor({ provider, tiers, now = () => new Date() }) {

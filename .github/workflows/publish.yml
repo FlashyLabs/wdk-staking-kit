@@ -1,6 +1,6 @@
 name: Publish to npm
 
-# Publishes @flashy/wdk-staking-kit when its version changes on main.
+# Publishes @flashylabs/wdk-staking-kit when its version changes on main.
 # A version already on the registry is skipped rather than failing on
 # "cannot publish over the previously published version" — makes a re-run
 # idempotent.
@@ -51,12 +51,12 @@ jobs:
         id: check
         run: |
           V=$(node -p "require('./package.json').version")
-          if [ -n "$(npm view "@flashy/wdk-staking-kit@$V" version 2>/dev/null || true)" ]; then
+          if [ -n "$(npm view "@flashylabs/wdk-staking-kit@$V" version 2>/dev/null || true)" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::@flashy/wdk-staking-kit@$V is already published."
+            echo "::notice::@flashylabs/wdk-staking-kit@$V is already published."
           else
             echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::@flashy/wdk-staking-kit@$V will be published."
+            echo "::notice::@flashylabs/wdk-staking-kit@$V will be published."
           fi
 
       - name: Test

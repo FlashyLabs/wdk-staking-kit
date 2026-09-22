@@ -19,7 +19,7 @@ test('build(): matches the committed wdk-staking-kit.manifest.json — run `npm 
 test('build(): contract id and module name', () => {
   const doc = build()
   assert.equal(doc.contract, 'wdk-staking-kit-manifest/1')
-  assert.equal(doc.module.package, '@flashy/wdk-staking-kit')
+  assert.equal(doc.module.package, '@flashylabs/wdk-staking-kit')
 })
 
 test('build(): the embedded example terms pass their own offline verifier', () => {

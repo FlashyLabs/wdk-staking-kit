@@ -1,4 +1,4 @@
-# @flashy/wdk-staking-kit
+# @flashylabs/wdk-staking-kit
 
 ```
         ██
@@ -15,7 +15,7 @@ A reference staking primitive for wallets built on [Tether's WDK](https://github
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
 
-Built by [Flashy Labs](https://flashyos.com) — part of the open-source toolkit we ship for teams building on Tether's WDK. Its sibling package is [`@flashy/wdk-policy-guard`](https://github.com/FlashyLabs/wdk-policy-guard).
+Built by [Flashy Labs](https://flashyos.com) — part of the open-source toolkit we ship for teams building on Tether's WDK. Its sibling package is [`@flashylabs/wdk-policy-guard`](https://github.com/FlashyLabs/wdk-policy-guard).
 
 ## Why this exists
 
@@ -26,13 +26,13 @@ As of this package's first release, no WDK module offers staking — every walle
 ## Install
 
 ```bash
-npm install @flashy/wdk-staking-kit
+npm install @flashylabs/wdk-staking-kit
 ```
 
 ## Quickstart
 
 ```js
-import { StakingService, InMemoryBalanceProvider, EXAMPLE_TIERS } from '@flashy/wdk-staking-kit'
+import { StakingService, InMemoryBalanceProvider, EXAMPLE_TIERS } from '@flashylabs/wdk-staking-kit'
 
 const provider = new InMemoryBalanceProvider({ alice: '100' })
 const staking = new StakingService({ provider, tiers: EXAMPLE_TIERS })
@@ -59,7 +59,7 @@ const closed = await staking.close(position.id)
 `EXAMPLE_TIERS` is exactly that — an example. Publish your own:
 
 ```js
-import { publishedTerms, checkTerms } from '@flashy/wdk-staking-kit'
+import { publishedTerms, checkTerms } from '@flashylabs/wdk-staking-kit'
 
 const MY_TIERS = [
   { id: 'flex-7', termDays: 7, aprBasisPoints: 150, minAmount: '10' },
@@ -84,6 +84,8 @@ console.log(checkTerms(terms)) // { ok: true } — or a list of problems, before
 | `yieldFor(tier, amount)` | A `Number`-based yield calculation for small, display-sized amounts (e.g. "yield on 100 units" on a terms page). **Never use this for a real lock amount** — see `ARCHITECTURE.md`. |
 | `publishedTerms(opts)` / `checkTerms(doc)` | Build and verify a published terms document. |
 | `TierNotFoundError`, `BelowMinimumError`, `InsufficientAvailableError`, `PositionNotFoundError`, `StillLockedError`, `AlreadyClosedError` | Typed errors `lock()`/`close()` throw. |
+
+Full TypeScript declarations ship with the package — `Tier` and `BalanceProvider` import directly from the package root, generated from the source's own JSDoc so the types can never drift from the implementation. `test-types/consumer.ts` is the type-level test that would fail if they ever did; it's also what caught `BalanceProvider` not actually being structurally typed before this shipped — `StakingService` accepted any object shaped like the interface at runtime, but the types only accepted `InMemoryBalanceProvider` itself.
 
 ## What it refuses
 

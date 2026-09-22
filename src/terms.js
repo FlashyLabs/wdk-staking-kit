@@ -25,7 +25,7 @@ export const EXAMPLE_TIERS = Object.freeze([
  * @property {string} minAmount       the smallest lock this tier accepts, in the unit's smallest denomination, as an integer string
  */
 
-/** @param {Tier[]} tiers @param {string} id */
+/** @param {readonly Tier[]} tiers @param {string} id */
 export function tierById(tiers, id) {
   return tiers.find((t) => t.id === id) ?? null
 }
@@ -64,7 +64,7 @@ export function yieldForAmount(tier, amount) {
  * The whole terms document, in the shape a page renders and a stranger
  * checks. Frozen so nothing downstream can mutate the published set.
  * @param {object} opts
- * @param {Tier[]} opts.tiers
+ * @param {readonly Tier[]} opts.tiers
  * @param {string} opts.unit          e.g. "Gold", "USD", "points" — whatever the staked balance is denominated in
  * @param {string} opts.version
  */

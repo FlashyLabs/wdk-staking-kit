@@ -13,7 +13,7 @@ A clear description of what you expected `lock()`, `close()`, or `yieldForAmount
 **Minimal reproduction**
 
 ```js
-import { StakingService, InMemoryBalanceProvider, EXAMPLE_TIERS } from '@flashy/wdk-staking-kit'
+import { StakingService, InMemoryBalanceProvider, EXAMPLE_TIERS } from '@flashylabs/wdk-staking-kit'
 
 const provider = new InMemoryBalanceProvider({ alice: '1000' })
 const staking = new StakingService({ provider, tiers: EXAMPLE_TIERS })
@@ -25,7 +25,7 @@ The smaller this is, the faster it gets fixed.
 
 **Package version**
 
-Output of `npm ls @flashy/wdk-staking-kit`.
+Output of `npm ls @flashylabs/wdk-staking-kit`.
 
 **Environment**
 

@@ -14,7 +14,7 @@ export function build() {
   const terms = publishedTerms({ tiers: EXAMPLE_TIERS, unit: 'example-unit', version: '0.1.0' })
   return {
     contract: 'wdk-staking-kit-manifest/1',
-    name: '@flashy/wdk-staking-kit',
+    name: '@flashylabs/wdk-staking-kit',
     module: { package: pkg.name, version: pkg.version },
     posture: {
       stage: 'balance-provider-first',
