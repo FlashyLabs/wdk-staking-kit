@@ -6,6 +6,8 @@ A reference staking primitive for wallets built on [Tether's WDK](https://github
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org)
 
+Built by [Flashy Labs](https://flashyos.com) — part of the open-source toolkit we ship for teams building on Tether's WDK. Its sibling package is [`@flashy/wdk-policy-guard`](https://github.com/FlashyLabs/wdk-policy-guard).
+
 ## Why this exists
 
 As of this package's first release, no WDK module offers staking — every wallet, protocol and pricing module WDK publishes covers something else (transfers, swaps, bridging, fiat on/off-ramp), and a team wanting to offer staking has to design the whole primitive from nothing. The two real design questions — *does a lock need an on-chain contract to be safe?* and *how do you pay yield without letting a caller assert their own payout?* — are exactly the ones this package answers, so the next team doesn't have to re-derive them under deadline.
@@ -123,3 +125,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 ## License
 
 [Apache-2.0](./LICENSE) © 2026 Flashy Labs
+
+---
+
+Built by [Flashy Labs](https://flashyos.com), the mesh platform for organisations' agents. If something here is broken, unclear, or just interesting, [open an issue](https://github.com/FlashyLabs/wdk-staking-kit/issues) — we read them.
