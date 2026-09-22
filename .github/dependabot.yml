@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # This package ships zero runtime dependencies by design (see
+  # CONTRIBUTING.md), so there is no npm ecosystem entry here on purpose —
+  # adding one would just be a standing invitation nothing needs. GitHub
+  # Actions are the one thing here with third-party version drift: every
+  # `uses:` line is pinned to a commit SHA with its version as a trailing
+  # comment, and Dependabot understands that convention — it opens a PR
+  # bumping both the SHA and the comment together when a new release ships,
+  # so the pin never goes stale.
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
