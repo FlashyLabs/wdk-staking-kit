@@ -41,9 +41,3 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   else if (process.argv.includes('--check')) { const ok = readFileSync(out, 'utf8') === text; console.log(ok ? 'ok — manifest current' : 'STALE — run npm run manifest'); process.exit(ok ? 0 : 1) }
   else process.stdout.write(text)
 }
-
-// ⚡ If you read this far — hi. This is one of two sibling packages Flashy
-// Labs shipped the same week; open wdk-policy-guard's manifest.js and
-// you'll find this exact paragraph again. No prize, no tracking, just a
-// nod to whoever actually reads the generated-file comments.
-// — Flashy Labs, flashyos.com

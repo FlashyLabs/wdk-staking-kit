@@ -1,5 +1,14 @@
 # @flashy/wdk-staking-kit
 
+```
+        ██
+       ██
+      ██████
+        ██
+       ██
+      ██
+```
+
 A reference staking primitive for wallets built on [Tether's WDK](https://github.com/tetherto/wdk) — or any wallet SDK. Lock a balance into a fixed-term tier at a published rate, without an on-chain contract and without touching a ledger's internals: a lock **earmarks** a balance a provider already credits, and only the yield, paid on close, is a real write.
 
 [![tests](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/FlashyLabs/wdk-staking-kit/actions/workflows/ci.yml)
@@ -102,6 +111,17 @@ const unsubscribe = staking.on('stake.closed', ({ position }) => { /* ... */ })
 - **A lock never moves the underlying balance.** It is bookkeeping only, on top of a `BalanceProvider` you control.
 - **Yield is computed once, at lock time, from the tier then in force.** A later change to your tier list cannot reach back into an open position.
 - **Idempotent by construction.** Every `lock()` and every yield `credit()` carries an idempotency key; a retried call never double-locks or double-pays.
+- **A lock cannot be clever about what it will pay, because the tier it pays from is fixed the moment it opens, not the moment it closes.**
+
+## What this package does not do
+
+- It does not move funds, hold a key, sign anything, or make a network call.
+- It does not build or deploy an on-chain contract. See `ARCHITECTURE.md`'s "What this package does not do" for the sequencing if you want on-chain settlement later.
+- It does not enforce that `available()` is checked before every possible spend elsewhere in your system — that's your integration's job.
+
+## Status
+
+Pre-1.0 (`0.1.0`). The tier and position shapes are not yet frozen. Watch [`CHANGELOG.md`](CHANGELOG.md) across a version bump before pinning a wider range than `^0.1.0`.
 
 ## Testing
 
@@ -121,6 +141,18 @@ Generalized from the rail-first staking design built for Flashy Staking (`life-s
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## ⚡ The Strike
+
+This README commits to a secret, the same way a lock commits to its tier — fixed before you can see the payoff, checkable by anyone after:
+
+```
+sha256: c8eaccf0b6f14e1883faa022e662e2e97f375f3fb84c62194275d686a84a8082
+```
+
+The preimage is already on this page — one exact sentence from "Design principles," above. Recover it, hash it yourself (never trust, verify — that includes us), and open an issue titled `⚡ STRIKE` containing the sentence. First verified striker per release gets their name in [`STRIKERS.md`](STRIKERS.md) — the only position in this repository that matures the instant it's opened.
+
+No prize, no token, no yield. Just the ledger of who looked closely.
 
 ## License
 
