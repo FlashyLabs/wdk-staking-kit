@@ -1,0 +1,12 @@
+# Line endings are LF in the repository and LF in every checkout.
+#
+# Without this, git on a Windows runner checks these files out with CRLF, and
+# `npm run check` — which compares the generated manifest against the committed
+# one as an exact string — reports STALE on a manifest that is current. The
+# failure is a checkout setting, not a stale file, and it reads as the latter.
+* text=auto eol=lf
+
+# Binary, never touched.
+*.png binary
+*.jpg binary
+*.gz  binary

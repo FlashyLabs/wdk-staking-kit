@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs",
+    "test": "node --test test/balance-provider.test.mjs test/manifest.test.mjs test/staking.test.mjs test/strike.test.mjs test/terms.test.mjs test/test-script.test.mjs test/workflow-pins.test.mjs",
     "manifest": "node src/manifest.js --write",
     "check": "node src/manifest.js --check",
     "version": "npm run manifest && git add wdk-staking-kit.manifest.json",

@@ -14,6 +14,17 @@ on:
   schedule:
     - cron: '0 6 * * 1' # every Monday
 
+# One analysis per ref at a time. Several pull_request runs starting in the
+# same minute restored an overlay-base database written by a different
+# codeql-action version and failed with
+#   Loaded a configuration file for version '4.38.1', but running version '3.38.1'
+# — a cache collision, not a finding. Every push run to main passed throughout.
+# A contributor should never open a PR and be shown a red security scan that
+# has nothing to do with their change.
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
