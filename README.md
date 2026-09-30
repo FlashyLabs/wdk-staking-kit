@@ -127,12 +127,12 @@ const unsubscribe = staking.on('stake.closed', ({ position }) => { /* ... */ })
 
 ## Status
 
-Pre-1.0 (`0.1.0`). The tier and position shapes are not yet frozen. Watch [`CHANGELOG.md`](CHANGELOG.md) across a version bump before pinning a wider range than `^0.1.0`.
+Pre-1.0 (`0.1.3`). The tier and position shapes are not yet frozen. Watch [`CHANGELOG.md`](CHANGELOG.md) across a version bump before pinning a wider range than `^0.1.3`.
 
 ## Testing
 
 ```bash
-npm test        # 52 tests, node's built-in test runner, no external services
+npm test        # 71 tests, node's built-in test runner, no external services
 npm run check    # confirms the generated manifest is current
 ```
 
