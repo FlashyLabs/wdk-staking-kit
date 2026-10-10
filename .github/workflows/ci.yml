@@ -26,4 +26,5 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check
+      - run: npm run invariants
       - run: npm run test:types

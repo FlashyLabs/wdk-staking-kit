@@ -247,3 +247,23 @@ test('close: yield is priced from the terms frozen into the position, not the ti
   assert.equal(closed.yieldPaid, expected, 'the rate change after the lock did not reach the open position')
   assert.equal(provider.credited.filter((e) => e.holderId === 'alice' && e.reason.type === 'staking-yield').length, 1)
 })
+
+// ── Found by the invariants harness (test/invariants.test.mjs), 2026-10-10 ──
+// Two closes of one position racing across the provider's credit() await both
+// passed the status check: both fulfilled and stake.closed fired twice, with
+// only the provider's idempotency key between the holder and a second payment.
+
+test('close: two concurrent closes of one position admit exactly one — the yield is credited once and stake.closed fires once', async () => {
+  let now = new Date('2026-01-01T00:00:00.000Z')
+  const { svc, provider } = service({ now: () => now, balances: { alice: '1000000' } })
+  const p = await svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '1000000', idempotencyKey: 'k' })
+  now = new Date('2026-03-01T00:00:00.000Z')
+  const seen = []
+  svc.on('stake.closed', (e) => seen.push(e.position.id))
+  const results = await Promise.allSettled([svc.close(p.id), svc.close(p.id)])
+  assert.deepEqual(results.map((r) => r.status).sort(), ['fulfilled', 'rejected'])
+  assert.ok(results.find((r) => r.status === 'rejected').reason instanceof AlreadyClosedError)
+  assert.equal(seen.length, 1, 'stake.closed fired once')
+  assert.equal(provider.credited.filter((c) => c.reason.type === 'staking-yield' && c.reason.id === p.id).length, 1)
+  assert.equal(svc.position(p.id).status, 'closed')
+})

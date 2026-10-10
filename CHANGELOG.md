@@ -4,6 +4,12 @@ All notable changes to this project are documented here. Format loosely follows 
 
 The published version is the one in [`package.json`](package.json); the topmost entry below must match it (a test pins this — see `test/doc-pins.test.mjs`), so the changelog can never quietly fall behind the package again.
 
+## Unreleased
+
+**Fixed:** two `close()` calls for one matured position started together both fulfilled and `stake.closed` fired twice — the status check and the write sat either side of the provider's `credit()` await, the same shape as the lock defect fixed at 0.2.0. Only the provider's idempotency key on `staking-yield:${positionId}` prevented a second payment. `close()` now runs through the same per-holder chain as `lock()`, so exactly one close succeeds and the rest are refused `AlreadyClosedError`. Found by the harness below on the day it was wired, on the code that had just fixed the other three.
+
+**Added:** `INVARIANTS.md` — the four guarantees this service makes about money (never over-reserve, idempotent lock, terms fixed at agreement, a position closes once), each citing the code that enforces it and the tests that prove it — and `vendor-invariants.mjs`, the estate's `invariants/1` harness vendored byte-for-byte from spec-kit (`test/vendor-invariants.test.mjs` reports drift, and UNKNOWN rather than a pass when spec-kit is not checked out beside this repository). `test/invariants.test.mjs` drives the real `StakingService` through every ordered pair of lock / same-key lock / conflicting lock / close / tierChange under seven schedules including across the clock, through seeded random command sequences, and through one deliberately broken variant per invariant that the harness must refuse. `npm run invariants` checks the document against the suite and CI runs it.
+
 ## 0.2.0 — 2026-10-10
 
 Three behaviours an external audit reproduced behind a green suite, each now fixed and pinned by a test in `test/staking.test.mjs`:

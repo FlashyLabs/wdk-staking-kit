@@ -99,8 +99,12 @@ Every one of these is a real test in [`test/staking.test.mjs`](test/staking.test
 - to lock more than the holder's available balance — balance minus what is already locked, across every open position (`InsufficientAvailableError`)
 - a non-positive amount, or an amount that isn't an integer string (never a `Number`)
 - to close a position before it matures (`StillLockedError`)
-- to close the same position twice (`AlreadyClosedError`)
+- to close the same position twice — including two closes started together, of which exactly one succeeds (`AlreadyClosedError`)
 - to change a matured lock's yield after the fact — it is computed from the tier **in force when the lock was opened**, never recomputed against a later tier list
+
+## Invariants
+
+[`INVARIANTS.md`](INVARIANTS.md) states the four guarantees this service makes about money — never over-reserve, idempotent lock, terms fixed at agreement, a position closes once — each with the code that enforces it and the tests that prove it. The document is checked, not decorative: `node vendor-invariants.mjs check .` (the estate's `invariants/1` harness, vendored byte-for-byte from spec-kit) fails when a citation names a test that does not exist, and `test/invariants.test.mjs` drives the real service through every pair of operations under every schedule, through random command sequences across the clock, and through one deliberately broken variant per invariant that the harness must refuse. Every operation this kit had a defect in held for one call at a time and broke for a pair; this is the test that runs two things at once.
 
 ## Events
 
@@ -132,8 +136,9 @@ Pre-1.0 (`0.2.0`). The tier and position shapes are not yet frozen. Watch [`CHAN
 ## Testing
 
 ```bash
-npm test        # 77 tests, node's built-in test runner, no external services
+npm test        # 90 tests, node's built-in test runner, no external services
 npm run check    # confirms the generated manifest is current
+npm run invariants   # INVARIANTS.md holds against the suite (invariants/1)
 ```
 
 ## Security

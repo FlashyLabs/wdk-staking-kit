@@ -53,7 +53,7 @@ export class StakingService {
     if (!Array.isArray(tiers) || tiers.length === 0) throw new Error('StakingService needs at least one tier')
     this.provider = provider
     this.tiers = tiers
-    /** @type {Map<string, Promise<unknown>>} one lock at a time per holder — see lock() */
+    /** @type {Map<string, Promise<unknown>>} one lock or close at a time per holder — see lock() and close() */
     this.queues = new Map()
     /** @type {Map<string, string>} `${holderId}|${idempotencyKey}` → position id */
     this.byKey = new Map()
@@ -116,7 +116,7 @@ export class StakingService {
     return this._serial(holderId, () => this._lock({ holderId, tier, amount, idempotencyKey }))
   }
 
-  /** @private run `fn` after every earlier lock for this holder has settled */
+  /** @private run `fn` after every earlier lock or close for this holder has settled */
   _serial(holderId, fn) {
     const prev = this.queues.get(holderId) ?? Promise.resolve()
     const run = prev.catch(() => {}).then(fn)
@@ -179,6 +179,20 @@ export class StakingService {
    * @param {string} positionId
    */
   async close(positionId) {
+    const { holderId } = this.position(positionId)
+    // One close at a time per holder, on the same chain as lock(). The status
+    // check and the write sit either side of the provider's `credit()` await,
+    // and two closes of one position interleaved across it both passed the
+    // check: both fulfilled and `stake.closed` fired twice, with only the
+    // provider's idempotency key standing between the holder and a second
+    // payment (found by the invariants harness, 2026-10-10). Serialising makes
+    // check-then-write one step, so the second close reads `closed` and is
+    // refused.
+    return this._serial(holderId, () => this._close(positionId))
+  }
+
+  /** @private the body of close(), run one at a time per holder */
+  async _close(positionId) {
     const p = this.position(positionId)
     if (p.status === 'closed') throw new AlreadyClosedError(positionId)
     if (this.now() < p.maturesAt) throw new StillLockedError(positionId, p.maturesAt)
