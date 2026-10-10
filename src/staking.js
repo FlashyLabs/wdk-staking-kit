@@ -35,6 +35,10 @@ export class AlreadyClosedError extends Error {
   constructor(id) { super(`${id} is already closed`); this.name = 'AlreadyClosedError'; this.code = 'ALREADY_CLOSED' }
 }
 
+export class IdempotencyConflictError extends Error {
+  constructor(key) { super(`idempotency key ${key} was already used for a different lock; a retry must repeat the same command`); this.name = 'IdempotencyConflictError'; this.code = 'IDEMPOTENCY_CONFLICT' }
+}
+
 export const EVENT_TYPES = Object.freeze(['stake.locked', 'stake.closed'])
 
 export class StakingService {
@@ -49,6 +53,10 @@ export class StakingService {
     if (!Array.isArray(tiers) || tiers.length === 0) throw new Error('StakingService needs at least one tier')
     this.provider = provider
     this.tiers = tiers
+    /** @type {Map<string, Promise<unknown>>} one lock at a time per holder — see lock() */
+    this.queues = new Map()
+    /** @type {Map<string, string>} `${holderId}|${idempotencyKey}` → position id */
+    this.byKey = new Map()
     this.now = now
     /** @type {Map<string, object>} */
     this.positions = new Map()
@@ -100,6 +108,35 @@ export class StakingService {
     if (!(typeof amount === 'string' && /^\d+$/.test(amount) && BigInt(amount) > 0n)) throw new Error('amount must be a positive integer string')
     if (BigInt(amount) < BigInt(tier.minAmount)) throw new BelowMinimumError(tierId, tier.minAmount, amount)
     if (!idempotencyKey) throw new Error('idempotencyKey is required')
+    // One lock at a time per holder. `available()` awaits the provider, and
+    // two locks interleaved across that await both read the balance before
+    // either is recorded — 80 + 80 against 100 passed, reproduced 2026-10-10.
+    // Serialising per holder makes the read-then-record pair atomic without
+    // asking the provider for a hold it does not offer.
+    return this._serial(holderId, () => this._lock({ holderId, tier, amount, idempotencyKey }))
+  }
+
+  /** @private run `fn` after every earlier lock for this holder has settled */
+  _serial(holderId, fn) {
+    const prev = this.queues.get(holderId) ?? Promise.resolve()
+    const run = prev.catch(() => {}).then(fn)
+    this.queues.set(holderId, run)
+    run.finally(() => { if (this.queues.get(holderId) === run) this.queues.delete(holderId) }).catch(() => {})
+    return run
+  }
+
+  /** @private the body of lock(), run one at a time per holder */
+  async _lock({ holderId, tier, amount, idempotencyKey }) {
+    // Idempotent: the same key repeats the same command and returns the same
+    // position — a retry after a dropped response must not open a second lock
+    // (reproduced 2026-10-10). The same key with a different command is a
+    // conflict, never a silent second position and never a silent overwrite.
+    const keyed = this.byKey.get(`${holderId}|${idempotencyKey}`)
+    if (keyed) {
+      const p = this.positions.get(keyed)
+      if (p.tierId === tier.id && p.amount === amount) return p
+      throw new IdempotencyConflictError(idempotencyKey)
+    }
     const available = BigInt(await this.available(holderId))
     if (available < BigInt(amount)) throw new InsufficientAvailableError(holderId, amount, available.toString())
 
@@ -107,10 +144,17 @@ export class StakingService {
     const maturesAt = new Date(startedAt.getTime() + tier.termDays * 86_400_000)
     const id = this.nextId()
     const position = Object.freeze({
-      id, holderId, tierId, amount, startedAt, maturesAt,
+      id, holderId, tierId: tier.id, amount, startedAt, maturesAt,
       idempotencyKey, status: 'locked',
+      // The terms this position was opened under, frozen into it. close()
+      // prices the yield from these and never from the current tier list, so a
+      // later change to a tier's rate or term cannot reach back into an open
+      // lock (reproduced 2026-10-10: a rate raised tenfold after the lock paid
+      // tenfold). The original contractual terms are the position's.
+      terms: Object.freeze({ aprBasisPoints: tier.aprBasisPoints, termDays: tier.termDays }),
     })
     this.positions.set(id, position)
+    this.byKey.set(`${holderId}|${idempotencyKey}`, id)
     this._emit('stake.locked', { position })
     return position
   }
@@ -138,8 +182,9 @@ export class StakingService {
     const p = this.position(positionId)
     if (p.status === 'closed') throw new AlreadyClosedError(positionId)
     if (this.now() < p.maturesAt) throw new StillLockedError(positionId, p.maturesAt)
-    const tier = tierById(this.tiers, p.tierId)
-    const yieldAmount = yieldForAmount(tier, p.amount)
+    // Priced from the terms frozen into the position at lock time, never from
+    // the tier list as it stands now.
+    const yieldAmount = yieldForAmount(p.terms, p.amount)
     await this.provider.credit({
       holderId: p.holderId, amount: yieldAmount,
       reason: { type: 'staking-yield', id: positionId },

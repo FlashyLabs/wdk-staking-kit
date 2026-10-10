@@ -34,7 +34,9 @@ interface BalanceProvider {
 
 Two methods, deliberately. `StakingService` never asks a provider to debit, hold, or release — locking never touches the provider at all, and yield is the only write, which is why `credit()` is the only write method the interface needs. A provider backed by a real ledger, a database row with an atomic increment, or a WDK wallet's own balance-reading method all satisfy this with a thin adapter; `StakingService`'s own code never needs to change to swap one in.
 
-**Idempotency is the provider's contract to honor, not `StakingService`'s to re-implement.** `close()` always calls `credit()` with the deterministic key `staking-yield:${positionId}`, so a provider that honors "the same key credits once" makes a retried `close()` safe automatically. `InMemoryBalanceProvider` shows the reference implementation of that contract.
+**Idempotency of the yield credit is the provider's contract to honor; idempotency of `lock()` is this service's.** A repeated `(holderId, idempotencyKey)` returns the same position, a conflicting one is refused, and locks are serialised per holder so two interleaved reads of the balance cannot both pass (external audit, fixed 2026-10-10). The terms a position opened under are frozen into `position.terms`, which is what `close()` prices from.
+
+**The provider's own idempotency, as before:** `close()` always calls `credit()` with the deterministic key `staking-yield:${positionId}`, so a provider that honors "the same key credits once" makes a retried `close()` safe automatically. `InMemoryBalanceProvider` shows the reference implementation of that contract.
 
 ## Why the tier list is a constructor argument, not a constant
 

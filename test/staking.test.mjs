@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   StakingService, EVENT_TYPES, TierNotFoundError, BelowMinimumError, InsufficientAvailableError,
-  PositionNotFoundError, StillLockedError, AlreadyClosedError,
+  PositionNotFoundError, StillLockedError, AlreadyClosedError, IdempotencyConflictError,
 } from '../src/staking.js'
 import { InMemoryBalanceProvider } from '../src/balance-provider.js'
 import { EXAMPLE_TIERS, yieldForAmount, tierById } from '../src/terms.js'
@@ -181,4 +181,69 @@ test('a custom tier list works exactly like EXAMPLE_TIERS — nothing in Staking
   const { svc } = service({ tiers: customTiers })
   const p = await svc.lock({ holderId: 'alice', tierId: 'quick-7', amount: '50', idempotencyKey: 'k1' })
   assert.equal(p.tierId, 'quick-7')
+})
+
+// ── Three behaviours an external audit found behind passing tests (2026-10-10) ──
+
+test('lock: two concurrent locks cannot reserve more than the balance — 80 + 80 against 100 admits exactly one', async () => {
+  const { svc } = service()
+  const results = await Promise.allSettled([
+    svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '80', idempotencyKey: 'a' }),
+    svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '80', idempotencyKey: 'b' }),
+  ])
+  assert.deepEqual(results.map((r) => r.status).sort(), ['fulfilled', 'rejected'])
+  const rejected = results.find((r) => r.status === 'rejected')
+  assert.ok(rejected.reason instanceof InsufficientAvailableError)
+  assert.equal(svc.locked('alice'), '80')
+  assert.equal(await svc.available('alice'), '20')
+})
+
+test('lock: many concurrent locks never earmark past the balance, and locks for different holders do not wait on each other', async () => {
+  const { svc } = service({ balances: { alice: '100', bob: '100' } })
+  const attempts = Array.from({ length: 10 }, (_, i) => svc.lock({ holderId: i % 2 ? 'alice' : 'bob', tierId: 'flex-30', amount: '30', idempotencyKey: `k${i}` }))
+  const results = await Promise.allSettled(attempts)
+  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 6, 'three of 30 fit in 100, per holder')
+  assert.equal(svc.locked('alice'), '90')
+  assert.equal(svc.locked('bob'), '90')
+})
+
+test('lock: the same idempotency key repeated returns the same position and opens no second lock', async () => {
+  const { svc } = service()
+  const a = await svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '20', idempotencyKey: 'retry-me' })
+  const b = await svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '20', idempotencyKey: 'retry-me' })
+  assert.equal(b.id, a.id)
+  assert.equal(svc.locked('alice'), '20')
+  const seen = []
+  svc.on('stake.locked', (e) => seen.push(e.position.id))
+  await svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '20', idempotencyKey: 'retry-me' })
+  assert.deepEqual(seen, [], 'a replay emits no second event')
+})
+
+test('lock: the same idempotency key with a different command is a conflict, not a silent second lock', async () => {
+  const { svc } = service()
+  await svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '20', idempotencyKey: 'k' })
+  await assert.rejects(svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '25', idempotencyKey: 'k' }), IdempotencyConflictError)
+  await assert.rejects(svc.lock({ holderId: 'alice', tierId: 'standard-90', amount: '20', idempotencyKey: 'k' }), IdempotencyConflictError)
+  assert.equal(svc.locked('alice'), '20')
+})
+
+test('lock: the same idempotency key is scoped to the holder', async () => {
+  const { svc } = service({ balances: { alice: '100', bob: '100' } })
+  const a = await svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '20', idempotencyKey: 'shared' })
+  const b = await svc.lock({ holderId: 'bob', tierId: 'flex-30', amount: '20', idempotencyKey: 'shared' })
+  assert.notEqual(a.id, b.id)
+})
+
+test('close: yield is priced from the terms frozen into the position, not the tier list as it stands at close', async () => {
+  const tiers = EXAMPLE_TIERS.map((t) => ({ ...t }))
+  const { svc, provider } = service({ tiers, balances: { alice: '1000000' } })
+  const p = await svc.lock({ holderId: 'alice', tierId: 'flex-30', amount: '1000000', idempotencyKey: 'k' })
+  const tier = tiers.find((t) => t.id === 'flex-30')
+  const expected = yieldForAmount(tier, '1000000')
+  assert.deepEqual(p.terms, { aprBasisPoints: tier.aprBasisPoints, termDays: tier.termDays })
+  tier.aprBasisPoints *= 10
+  svc.now = () => new Date('2027-01-01T00:00:00.000Z')
+  const closed = await svc.close(p.id)
+  assert.equal(closed.yieldPaid, expected, 'the rate change after the lock did not reach the open position')
+  assert.equal(provider.credited.filter((e) => e.holderId === 'alice' && e.reason.type === 'staking-yield').length, 1)
 })

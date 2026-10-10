@@ -4,6 +4,16 @@ All notable changes to this project are documented here. Format loosely follows 
 
 The published version is the one in [`package.json`](package.json); the topmost entry below must match it (a test pins this — see `test/doc-pins.test.mjs`), so the changelog can never quietly fall behind the package again.
 
+## 0.2.0 — 2026-10-10
+
+Three behaviours an external audit reproduced behind a green suite, each now fixed and pinned by a test in `test/staking.test.mjs`:
+
+- **Concurrent locks could reserve more than the balance** (80 + 80 against 100 both succeeded). `lock()` is serialised per holder, so the read of the provider balance and the recording of the lock are one step; different holders do not wait on each other.
+- **A repeated idempotency key opened a second position.** The same `(holderId, idempotencyKey)` now returns the same position and emits no second event; the same key with a different amount or tier throws `IdempotencyConflictError` (`IDEMPOTENCY_CONFLICT`).
+- **A tier's rate change re-priced an open position.** The terms a position was opened under (`aprBasisPoints`, `termDays`) are frozen into it as `position.terms`, and `close()` prices the yield from those — never from the tier list as it stands at close.
+
+`position.terms` is a new field on every position; nothing else in the shape changed.
+
 ## 0.1.3 — 2026-09-28
 
 Maintenance release. The current published version on npm.
